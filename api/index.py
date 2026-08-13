@@ -30,9 +30,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Paths
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-public_dir = os.path.join(project_root, "public")
+# Locate public directory across local and Vercel serverless environments
+def resolve_public_dir():
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public"),
+        os.path.join(os.getcwd(), "public"),
+        os.path.join(os.getcwd(), "..", "public"),
+        "/var/task/public",
+        "/var/task/public/index.html"
+    ]
+    for c in candidates:
+        if os.path.exists(c):
+            if os.path.isdir(c) and os.path.exists(os.path.join(c, "index.html")):
+                return c
+            elif os.path.isfile(c):
+                return os.path.dirname(c)
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public")
+
+public_dir = resolve_public_dir()
 
 # Global in-memory cache for latest news run
 LATEST_NEWS_CACHE = {
@@ -49,11 +64,12 @@ class RunCrewRequest(BaseModel):
 # Root UI Endpoint - Serves Liquid Glass BBC Broadcast Interface
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    index_path = os.path.join(public_dir, "index.html")
+    curr_public = resolve_public_dir()
+    index_path = os.path.join(curr_public, "index.html")
     if os.path.exists(index_path):
         with open(index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1><p>Index file missing.</p>")
+    return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1><p>Welcome to TWF NEWS Autonomous Engine.</p>")
 
 # Redirect /docs directly to root UI so typing /docs still opens the UI
 @app.get("/docs")
@@ -62,14 +78,16 @@ async def redirect_docs_to_ui():
 
 @app.get("/styles.css")
 async def serve_css():
-    css_file = os.path.join(public_dir, "styles.css")
+    curr_public = resolve_public_dir()
+    css_file = os.path.join(curr_public, "styles.css")
     if os.path.exists(css_file):
         return FileResponse(css_file, media_type="text/css")
     return JSONResponse({"error": "styles.css not found"}, status_code=404)
 
 @app.get("/app.js")
 async def serve_js():
-    js_file = os.path.join(public_dir, "app.js")
+    curr_public = resolve_public_dir()
+    js_file = os.path.join(curr_public, "app.js")
     if os.path.exists(js_file):
         return FileResponse(js_file, media_type="application/javascript")
     return JSONResponse({"error": "app.js not found"}, status_code=404)
@@ -141,8 +159,9 @@ async def vercel_cron_handler(request: Request):
     }
 
 # Mount assets directory for images
-if os.path.exists(os.path.join(public_dir, "assets")):
-    app.mount("/assets", StaticFiles(directory=os.path.join(public_dir, "assets")), name="assets")
+assets_dir = os.path.join(public_dir, "assets")
+if os.path.exists(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
 # Entrypoint for local execution
 if __name__ == "__main__":
