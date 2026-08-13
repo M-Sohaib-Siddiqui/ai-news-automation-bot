@@ -26,6 +26,173 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Embedded Liquid Glass Broadcast UI HTML fallback
+INDEX_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TWF NEWS | The World Forum - AI Autonomous Newsroom</title>
+  <meta name="description" content="Autonomous Multi-Agent AI Newsroom powered by CrewAI, Google News API, LLMs, Slack, and Google Sheets.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="skyline-background"></div>
+  <div class="glass-backdrop-blur"></div>
+  <header class="top-brand-header">
+    <div class="liquid-glass-badge brand-container">
+      <div class="live-indicator"><span class="pulse-dot"></span> LIVE CREW</div>
+      <div class="brand-text-group">
+        <h1 id="twf-logo">TWF NEWS</h1>
+        <span class="sub-abbrev">THE WORLD FORUM</span>
+      </div>
+    </div>
+  </header>
+  <main class="main-broadcast-wrapper">
+    <section class="hero-center-box">
+      <div class="liquid-glass-card hero-glass-panel">
+        <div class="status-pill-bar">
+          <span class="glass-pill" id="status-pill"><i class="fa-solid fa-server"></i> System Online</span>
+          <span class="glass-pill" id="cron-pill"><i class="fa-solid fa-clock"></i> Auto-Sync: Daily</span>
+          <span class="glass-pill clickable-pill" id="btn-open-guides"><i class="fa-solid fa-book"></i> Integration Setup Guides</span>
+        </div>
+        <h2 class="broadcast-title">Autonomous AI Newsroom</h2>
+        <p class="broadcast-subtitle">Multi-Agent CrewAI Intelligence Engine • Real-Time Slack & Google Sheets Automation</p>
+        <div class="topic-filter-bar">
+          <button class="topic-pill active" data-topic="Artificial Intelligence"><i class="fa-solid fa-robot"></i> AI & Robotics</button>
+          <button class="topic-pill" data-topic="Technology Trends"><i class="fa-solid fa-laptop-code"></i> Tech Trends</button>
+          <button class="topic-pill" data-topic="Global Finance"><i class="fa-solid fa-chart-line"></i> Global Finance</button>
+          <button class="topic-pill" data-topic="Crypto & Web3"><i class="fa-brands fa-bitcoin"></i> Crypto & Web3</button>
+          <button class="topic-pill" data-topic="World News"><i class="fa-solid fa-earth-americas"></i> World News</button>
+        </div>
+        <div class="action-btn-wrapper">
+          <button id="btn-run-crew" class="liquid-glass-button primary-trigger">
+            <span class="btn-sheen"></span>
+            <i class="fa-solid fa-bolt"></i> Run AI News Crew Now
+          </button>
+        </div>
+      </div>
+    </section>
+    <section class="content-grid">
+      <div class="grid-column news-column">
+        <div class="liquid-glass-card news-stream-panel">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-newspaper"></i> Latest Broadcast Headlines</h3>
+            <span class="timestamp-badge" id="last-updated-tag">Updated: Just Now</span>
+          </div>
+          <div id="news-container" class="news-list">
+            <div class="news-loading-skeleton">
+              <div class="skeleton-line title"></div>
+              <div class="skeleton-line text"></div>
+              <div class="skeleton-line text short"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-column console-column">
+        <div class="liquid-glass-card console-panel">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-terminal"></i> Multi-Agent Live Output</h3>
+            <span class="agent-count-badge">3 Agents Active</span>
+          </div>
+          <div class="console-body" id="console-output">
+            <div class="console-line info">[SYS] CrewAI Multi-Agent News Pipeline initialized.</div>
+            <div class="console-line ready">[SYS] Ready for trigger. Click 'Run AI News Crew Now' above.</div>
+          </div>
+        </div>
+        <div class="liquid-glass-card integrations-panel">
+          <div class="panel-header">
+            <h3><i class="fa-solid fa-plug"></i> Integration Status</h3>
+          </div>
+          <div class="integrations-grid">
+            <div class="integration-item" id="integ-slack">
+              <i class="fa-brands fa-slack"></i>
+              <div class="integ-info">
+                <span class="integ-name">Slack Bot</span>
+                <span class="integ-status-text" id="status-slack">Checking...</span>
+              </div>
+            </div>
+            <div class="integration-item" id="integ-sheets">
+              <i class="fa-solid fa-table"></i>
+              <div class="integ-info">
+                <span class="integ-name">Google Sheets</span>
+                <span class="integ-status-text" id="status-sheets">Checking...</span>
+              </div>
+            </div>
+            <div class="integration-item" id="integ-llm">
+              <i class="fa-solid fa-brain"></i>
+              <div class="integ-info">
+                <span class="integ-name">Groq / OpenAI LLM</span>
+                <span class="integ-status-text" id="status-llm">Checking...</span>
+              </div>
+            </div>
+            <div class="integration-item" id="integ-news">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <div class="integ-info">
+                <span class="integ-name">Google News API</span>
+                <span class="integ-status-text" id="status-news">Active (RSS/API)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="bbc-ticker-bar">
+    <div class="ticker-label"><span class="ticker-badge">BREAKING NEWS</span></div>
+    <div class="ticker-track-wrapper">
+      <div class="ticker-track" id="ticker-content">
+        <span>🌐 TWF NEWS: AI News Automation Bot active • Autonomous Multi-Agent Pipeline running on Vercel • Synchronizing with Slack & Google Sheets • Click 'Run AI News Crew Now' for instant update</span>
+      </div>
+    </div>
+  </footer>
+  <div id="guides-modal" class="modal-backdrop hidden">
+    <div class="liquid-glass-card modal-content">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-sliders"></i> Integration Setup Documentation</h2>
+        <button id="btn-close-modal" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="modal-tab active" data-tab="tab-slack"><i class="fa-brands fa-slack"></i> Slack Setup</button>
+        <button class="modal-tab" data-tab="tab-sheets"><i class="fa-solid fa-table"></i> Google Sheets Setup</button>
+        <button class="modal-tab" data-tab="tab-vercel"><i class="fa-solid fa-cloud-arrow-up"></i> Vercel Deployment</button>
+      </div>
+      <div class="modal-body">
+        <div id="tab-slack" class="tab-pane active">
+          <h3>Slack Bot Integration Instructions</h3>
+          <ol class="setup-list">
+            <li>Go to <a href="https://api.slack.com/apps" target="_blank">api.slack.com/apps</a> and click <strong>Create New App</strong>.</li>
+            <li>Add Bot Token Scopes: <code>chat:write</code>, <code>channels:read</code>.</li>
+            <li>Copy Bot User OAuth Token (starts with <code>xoxb-...</code>).</li>
+            <li>Add to Vercel Env as <code>SLACK_BOT_TOKEN=xoxb-...</code>.</li>
+          </ol>
+        </div>
+        <div id="tab-sheets" class="tab-pane hidden">
+          <h3>Google Sheets API Integration Instructions</h3>
+          <ol class="setup-list">
+            <li>Go to Google Cloud Console -> Create Service Account JSON key.</li>
+            <li>Copy raw JSON string into <code>GOOGLE_SHEETS_CREDENTIALS_JSON</code> env variable.</li>
+            <li>Share your Google Sheet with client_email as <strong>Editor</strong>.</li>
+          </ol>
+        </div>
+        <div id="tab-vercel" class="tab-pane hidden">
+          <h3>Vercel Deployment Instructions</h3>
+          <ol class="setup-list">
+            <li>Deploy codebase to Vercel via GitHub repository.</li>
+            <li>Configure Environment Variables under Project Settings.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>"""
+
 # Base directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -157,7 +324,7 @@ async def serve_index():
     content = read_static_file("index.html")
     if content:
         return HTMLResponse(content=content.decode("utf-8"))
-    return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1><p>Welcome to TWF NEWS Autonomous Engine.</p>")
+    return HTMLResponse(content=INDEX_HTML)
 
 @app.get("/docs")
 async def redirect_docs_to_ui():
