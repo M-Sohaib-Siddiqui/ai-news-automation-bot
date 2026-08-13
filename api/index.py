@@ -26,7 +26,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Embedded Liquid Glass Broadcast UI HTML fallback
+# Embedded Static Assets (Guarantees zero 404 styling errors on Vercel)
 INDEX_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -193,6 +193,300 @@ INDEX_HTML = """<!DOCTYPE html>
 </body>
 </html>"""
 
+STYLES_CSS = """/* TWF NEWS - Liquid Glass Design System */
+:root {
+  --font-primary: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-card: rgba(18, 24, 38, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  --accent-red: #ff3b30;
+  --accent-blue: #007aff;
+  --accent-cyan: #32ade6;
+  --accent-green: #34c759;
+  --accent-gold: #ffcc00;
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.85);
+  --text-dim: rgba(255, 255, 255, 0.55);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-primary);
+  color: var(--text-main);
+  background-color: #080a10;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+.skyline-background {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: radial-gradient(circle at 50% 20%, #1a2540 0%, #060810 80%), url('assets/skyline-bg.jpg');
+  background-size: cover; background-position: center; z-index: -2;
+}
+.glass-backdrop-blur {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: radial-gradient(circle at 50% 30%, rgba(10, 15, 30, 0.4), rgba(4, 6, 12, 0.85));
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: -1;
+}
+.top-brand-header { position: fixed; top: 20px; right: 24px; z-index: 100; }
+.brand-container {
+  padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 14px;
+  backdrop-filter: blur(24px); background: rgba(18, 22, 38, 0.75); border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+.live-indicator {
+  display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700;
+  color: var(--accent-red); background: rgba(255, 59, 48, 0.15); border: 1px solid rgba(255, 59, 48, 0.4);
+  padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
+}
+.pulse-dot { width: 7px; height: 7px; background-color: var(--accent-red); border-radius: 50%; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0% { transform: scale(0.95); } 70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255,59,48,0); } 100% { transform: scale(0.95); } }
+#twf-logo { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; letter-spacing: 2px; color: #ffffff; }
+.sub-abbrev { font-size: 0.65rem; font-weight: 600; letter-spacing: 2.5px; color: var(--accent-cyan); text-transform: uppercase; }
+.liquid-glass-card {
+  background: var(--glass-card); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: var(--glass-shadow); position: relative; overflow: hidden;
+}
+.main-broadcast-wrapper { max-width: 1280px; margin: 0 auto; padding: 90px 24px 80px 24px; }
+.hero-center-box { margin-bottom: 28px; text-align: center; }
+.hero-glass-panel { padding: 32px; display: flex; flex-direction: column; align-items: center; }
+.status-pill-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 20px; }
+.glass-pill { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); padding: 6px 16px; border-radius: 30px; font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+.clickable-pill { cursor: pointer; background: rgba(0, 122, 255, 0.2); border-color: rgba(0, 122, 255, 0.5); color: #70b5ff; }
+.broadcast-title { font-family: var(--font-display); font-size: 2.3rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; }
+.broadcast-subtitle { font-size: 0.95rem; color: var(--text-muted); max-width: 680px; margin: 0 auto 24px auto; }
+.topic-filter-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 24px; }
+.topic-pill {
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); color: var(--text-main);
+  padding: 10px 18px; border-radius: 30px; font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.topic-pill.active { background: linear-gradient(135deg, rgba(0, 122, 255, 0.4) 0%, rgba(50, 173, 230, 0.4) 100%); border-color: #32ade6; box-shadow: 0 0 20px rgba(50, 173, 230, 0.4); }
+.liquid-glass-button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4); color: #ffffff; padding: 14px 32px; border-radius: 40px;
+  font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+.content-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .content-grid { grid-template-columns: 1fr; } }
+.panel-header { padding: 18px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); display: flex; align-items: center; justify-content: space-between; }
+.panel-header h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.timestamp-badge, .agent-count-badge { font-size: 0.75rem; color: var(--text-dim); background: rgba(255, 255, 255, 0.06); padding: 4px 10px; border-radius: 12px; }
+.news-list { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.news-card-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 18px; }
+.news-card-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+.news-card-summary { font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; white-space: pre-line; margin-bottom: 12px; }
+.news-card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-dim); }
+.source-tag { color: var(--accent-cyan); font-weight: 600; }
+.story-link { color: var(--accent-blue); text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+.console-panel { margin-bottom: 20px; }
+.console-body { padding: 16px; height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.82rem; background: rgba(0, 0, 0, 0.4); border-radius: 0 0 24px 24px; }
+.console-line { margin-bottom: 6px; }
+.console-line.info { color: var(--accent-cyan); }
+.console-line.ready { color: var(--accent-green); }
+.console-line.error { color: var(--accent-red); }
+.integrations-grid { padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.integration-item { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 14px; display: flex; align-items: center; gap: 10px; }
+.integration-item i { font-size: 1.3rem; color: var(--accent-cyan); }
+.integ-info { display: flex; flex-direction: column; }
+.integ-name { font-size: 0.78rem; font-weight: 600; }
+.integ-status-text { font-size: 0.68rem; color: var(--text-dim); }
+.integ-status-text.active { color: var(--accent-green); }
+.integ-status-text.simulated { color: var(--accent-gold); }
+.bbc-ticker-bar {
+  position: fixed; bottom: 0; left: 0; width: 100vw; height: 44px; background: rgba(12, 15, 24, 0.92);
+  backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border); display: flex; align-items: center; z-index: 100;
+}
+.ticker-label { background: var(--accent-red); height: 100%; padding: 0 16px; display: flex; align-items: center; }
+.ticker-badge { font-family: var(--font-display); font-weight: 900; font-size: 0.8rem; letter-spacing: 1px; color: #ffffff; }
+.ticker-track-wrapper { flex: 1; overflow: hidden; white-space: nowrap; }
+.ticker-track { display: inline-block; padding-left: 100%; animation: ticker-scroll 35s linear infinite; font-size: 0.88rem; color: #e5f0ff; }
+@keyframes ticker-scroll { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(12px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.modal-backdrop.hidden { display: none; }
+.modal-content { width: 100%; max-width: 680px; max-height: 85vh; overflow-y: auto; background: rgba(20, 26, 42, 0.95); border: 1px solid rgba(255, 255, 255, 0.3); }
+.modal-header { padding: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); display: flex; justify-content: space-between; align-items: center; }
+.close-btn { background: none; border: none; color: #ffffff; font-size: 1.6rem; cursor: pointer; }
+.modal-tabs { display: flex; gap: 8px; padding: 14px 18px 0 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+.modal-tab { background: none; border: none; color: var(--text-dim); padding: 8px 14px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; }
+.modal-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+.modal-body { padding: 20px; }
+.tab-pane.hidden { display: none; }
+.setup-list { padding-left: 18px; margin-top: 10px; line-height: 1.7; color: var(--text-muted); }
+.setup-list code { background: rgba(0, 0, 0, 0.4); padding: 2px 6px; border-radius: 4px; color: var(--accent-cyan); }
+"""
+
+APP_JS = """document.addEventListener('DOMContentLoaded', () => {
+  let selectedTopic = 'Artificial Intelligence';
+  const btnRunCrew = document.getElementById('btn-run-crew');
+  const newsContainer = document.getElementById('news-container');
+  const consoleOutput = document.getElementById('console-output');
+  const tickerContent = document.getElementById('ticker-content');
+  const lastUpdatedTag = document.getElementById('last-updated-tag');
+  const statusSlack = document.getElementById('status-slack');
+  const statusSheets = document.getElementById('status-sheets');
+  const statusLlm = document.getElementById('status-llm');
+  const statusNews = document.getElementById('status-news');
+  const btnOpenGuides = document.getElementById('btn-open-guides');
+  const btnCloseModal = document.getElementById('btn-close-modal');
+  const guidesModal = document.getElementById('guides-modal');
+  const modalTabs = document.querySelectorAll('.modal-tab');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+
+  const topicPills = document.querySelectorAll('.topic-pill');
+  topicPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      topicPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedTopic = pill.getAttribute('data-topic');
+      logToConsole(`[USER] Selected topic category: '${selectedTopic}'`);
+      fetchLatestNews(selectedTopic);
+    });
+  });
+
+  async function checkSystemStatus() {
+    try {
+      let res = await fetch('/api/status');
+      if (!res.ok) res = await fetch('/status');
+      if (res.ok) {
+        const data = await res.json();
+        statusSlack.textContent = data.integrations.slack_bot ? 'Active (xoxb Token)' : 'Simulated (Set Env)';
+        statusSlack.className = `integ-status-text ${data.integrations.slack_bot ? 'active' : 'simulated'}`;
+        statusSheets.textContent = data.integrations.google_sheets ? 'Active (GSpread)' : 'Simulated (Set Env)';
+        statusSheets.className = `integ-status-text ${data.integrations.google_sheets ? 'active' : 'simulated'}`;
+        statusLlm.textContent = data.integrations.groq_api ? 'Groq Llama-3.3' : (data.integrations.openai_api ? 'OpenAI GPT-4o' : 'Rule Fallback');
+        statusLlm.className = `integ-status-text ${data.integrations.groq_api || data.integrations.openai_api ? 'active' : 'simulated'}`;
+        statusNews.textContent = data.integrations.serper_api ? 'Serper.dev API' : 'Google News RSS';
+        statusNews.className = 'integ-status-text active';
+        return;
+      }
+    } catch (e) { console.warn('Status check notice:', e); }
+    statusSlack.textContent = 'Simulated (Set Env)';
+    statusSheets.textContent = 'Simulated (Set Env)';
+    statusLlm.textContent = 'Rule Fallback';
+  }
+
+  async function fetchLatestNews(topic = selectedTopic) {
+    try {
+      let res = await fetch(`/api/news?topic=${encodeURIComponent(topic)}`);
+      if (!res.ok) res = await fetch(`/news?topic=${encodeURIComponent(topic)}`);
+      if (res.ok) {
+        const data = await res.json();
+        renderNewsArticles(data.articles || []);
+        if (data.execution_logs && data.execution_logs.length > 0) {
+          data.execution_logs.forEach(log => logToConsole(log));
+        }
+      }
+    } catch (e) { logToConsole(`[ERR] Failed to load news feed: ${e.message}`, 'error'); }
+  }
+
+  async function triggerNewsCrew() {
+    btnRunCrew.disabled = true;
+    btnRunCrew.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Crew Active...`;
+    logToConsole(`[CREW] Initiating Multi-Agent Crew for '${selectedTopic}'...`, 'info');
+    renderLoadingSkeleton();
+    try {
+      let res = await fetch('/api/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: selectedTopic, max_articles: 5 })
+      });
+      if (!res.ok) {
+        res = await fetch('/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic: selectedTopic, max_articles: 5 })
+        });
+      }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.execution_logs) { data.execution_logs.forEach(log => logToConsole(log)); }
+        renderNewsArticles(data.articles || []);
+        if (data.timestamp) {
+          const timeStr = new Date(data.timestamp).toLocaleTimeString();
+          lastUpdatedTag.textContent = `Updated: ${timeStr}`;
+        }
+        logToConsole(`[SYS] ✅ Multi-Agent Run completed successfully!`, 'ready');
+      } else {
+        logToConsole(`[ERR] Server returned error ${res.status}`, 'error');
+      }
+    } catch (e) {
+      logToConsole(`[ERR] Execution failed: ${e.message}`, 'error');
+    } finally {
+      btnRunCrew.disabled = false;
+      btnRunCrew.innerHTML = `<span class="btn-sheen"></span><i class="fa-solid fa-bolt"></i> Run AI News Crew Now`;
+      checkSystemStatus();
+    }
+  }
+
+  function renderNewsArticles(articles) {
+    if (!articles || articles.length === 0) {
+      newsContainer.innerHTML = `<div class="news-card-item"><p>No articles available yet. Click 'Run AI News Crew Now' above.</p></div>`;
+      return;
+    }
+    newsContainer.innerHTML = '';
+    const tickerItems = [];
+    articles.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'news-card-item';
+      const headline = item.headline || 'Untitled Story';
+      const summary = item.summary || 'Summary unavailable.';
+      const link = item.link || '#';
+      const source = item.source || 'Google News';
+      const date = item.date || 'Recent';
+      tickerItems.push(`🌐 ${headline} (${source})`);
+      card.innerHTML = `
+        <div class="news-card-header"><h4 class="news-card-title">${escapeHtml(headline)}</h4></div>
+        <div class="news-card-summary">${escapeHtml(summary)}</div>
+        <div class="news-card-footer">
+          <span class="source-tag"><i class="fa-solid fa-signal"></i> ${escapeHtml(source)} • ${escapeHtml(date)}</span>
+          <a href="${escapeHtml(link)}" target="_blank" rel="noopener" class="story-link">Read Full Story <i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+        </div>`;
+      newsContainer.appendChild(card);
+    });
+    if (tickerItems.length > 0) {
+      tickerContent.innerHTML = `<span>${tickerItems.join(' &nbsp;&nbsp;•&nbsp;&nbsp; ')}</span>`;
+    }
+  }
+
+  function renderLoadingSkeleton() {
+    newsContainer.innerHTML = `<div class="news-card-item"><div class="skeleton-line title"></div><div class="skeleton-line text"></div></div>`;
+  }
+
+  function logToConsole(msg, type = 'info') {
+    const line = document.createElement('div');
+    line.className = `console-line ${type}`;
+    line.textContent = msg;
+    consoleOutput.appendChild(line);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function(m) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+    });
+  }
+
+  if (btnOpenGuides) btnOpenGuides.addEventListener('click', () => guidesModal.classList.remove('hidden'));
+  if (btnCloseModal) btnCloseModal.addEventListener('click', () => guidesModal.classList.add('hidden'));
+
+  modalTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      modalTabs.forEach(t => t.classList.remove('active'));
+      tabPanes.forEach(p => p.classList.add('hidden'));
+      tab.classList.add('active');
+      const targetId = tab.getAttribute('data-tab');
+      document.getElementById(targetId).classList.remove('hidden');
+    });
+  });
+
+  if (btnRunCrew) btnRunCrew.addEventListener('click', triggerNewsCrew);
+
+  checkSystemStatus();
+  fetchLatestNews();
+});"""
+
 # Base directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -335,14 +629,14 @@ async def serve_css():
     content = read_static_file("styles.css")
     if content:
         return Response(content=content, media_type="text/css")
-    return JSONResponse({"error": "styles.css not found"}, status_code=404)
+    return Response(content=STYLES_CSS, media_type="text/css")
 
 @app.get("/app.js")
 async def serve_js():
     content = read_static_file("app.js")
     if content:
         return Response(content=content, media_type="application/javascript")
-    return JSONResponse({"error": "app.js not found"}, status_code=404)
+    return Response(content=APP_JS, media_type="application/javascript")
 
 @app.get("/assets/skyline-bg.jpg")
 async def serve_skyline():
