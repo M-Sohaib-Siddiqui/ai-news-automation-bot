@@ -37,14 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. Fetch System Status (Runs parallel to page load)
+  // 2. Fetch System Status
   async function checkSystemStatus() {
     try {
-      const res = await fetch('/api/status');
+      let res = await fetch('/api/status');
+      if (!res.ok) res = await fetch('/status');
+      
       if (res.ok) {
         const data = await res.json();
         
-        // Update Integration badges
         statusSlack.textContent = data.integrations.slack_bot ? 'Active (xoxb Token)' : 'Simulated (Set Env)';
         statusSlack.className = `integ-status-text ${data.integrations.slack_bot ? 'active' : 'simulated'}`;
 
@@ -61,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('Status check notice:', e);
     }
-    // Fallback status text if API loading
     statusSlack.textContent = 'Simulated (Set Env)';
     statusSheets.textContent = 'Simulated (Set Env)';
     statusLlm.textContent = 'Rule Fallback';
@@ -70,7 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Fetch Latest News Data
   async function fetchLatestNews(topic = selectedTopic) {
     try {
-      const res = await fetch(`/api/news?topic=${encodeURIComponent(topic)}`);
+      let res = await fetch(`/api/news?topic=${encodeURIComponent(topic)}`);
+      if (!res.ok) res = await fetch(`/news?topic=${encodeURIComponent(topic)}`);
+      
       if (res.ok) {
         const data = await res.json();
         renderNewsArticles(data.articles || []);
@@ -93,11 +95,19 @@ document.addEventListener('DOMContentLoaded', () => {
     renderLoadingSkeleton();
 
     try {
-      const res = await fetch('/api/run', {
+      let res = await fetch('/api/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: selectedTopic, max_articles: 5 })
       });
+
+      if (!res.ok) {
+        res = await fetch('/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic: selectedTopic, max_articles: 5 })
+        });
+      }
 
       if (res.ok) {
         const data = await res.json();
