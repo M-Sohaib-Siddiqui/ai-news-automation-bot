@@ -65,9 +65,18 @@ class SheetsLoggerTool(BaseTool):
             'https://www.googleapis.com/auth/drive'
         ]
 
-        # 1. Try JSON credentials string in env (for Vercel/cloud)
+        # 1. Try local service account file path FIRST (for local development)
+        creds_file = os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "service_account.json")
+        if os.path.exists(creds_file):
+            try:
+                credentials = Credentials.from_service_account_file(creds_file, scopes=scopes)
+                return gspread.authorize(credentials)
+            except Exception as e:
+                print(f"[SheetsLoggerTool] Credentials File error: {e}")
+
+        # 2. Try JSON credentials string in env (for Vercel/cloud)
         creds_json_str = os.getenv("GOOGLE_SHEETS_CREDENTIALS_JSON")
-        if creds_json_str:
+        if creds_json_str and creds_json_str.strip() and not creds_json_str.startswith("your_"):
             try:
                 if not creds_json_str.strip().startswith("{"):
                     creds_json_str = base64.b64decode(creds_json_str).decode('utf-8')
@@ -76,15 +85,6 @@ class SheetsLoggerTool(BaseTool):
                 return gspread.authorize(credentials)
             except Exception as e:
                 print(f"[SheetsLoggerTool] Credentials JSON parse error: {e}")
-
-        # 2. Try local service account file path
-        creds_file = os.getenv("GOOGLE_SHEETS_CREDENTIALS_FILE", "service_account.json")
-        if os.path.exists(creds_file):
-            try:
-                credentials = Credentials.from_service_account_file(creds_file, scopes=scopes)
-                return gspread.authorize(credentials)
-            except Exception as e:
-                print(f"[SheetsLoggerTool] Credentials File error: {e}")
 
         return None
 
@@ -132,7 +132,7 @@ class SheetsLoggerTool(BaseTool):
                 }
 
             except Exception as e:
-                err_msg = f"Google Sheets API Error: {str(e)}"
+                err_msg = f"Google Sheets API Error ({type(e).__name__}): {str(e)}"
                 print(f"[SheetsLoggerTool] {err_msg}")
                 return {
                     "status": "error",
