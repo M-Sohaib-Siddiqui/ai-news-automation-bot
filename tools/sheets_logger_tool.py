@@ -70,7 +70,10 @@ class SheetsLoggerTool(BaseTool):
         if os.path.exists(creds_file):
             try:
                 credentials = Credentials.from_service_account_file(creds_file, scopes=scopes)
-                return gspread.authorize(credentials)
+                client = gspread.authorize(credentials)
+                if hasattr(client, 'http_client'):
+                    client.http_client.timeout = 20
+                return client
             except Exception as e:
                 print(f"[SheetsLoggerTool] Credentials File error: {e}")
 
@@ -82,7 +85,10 @@ class SheetsLoggerTool(BaseTool):
                     creds_json_str = base64.b64decode(creds_json_str).decode('utf-8')
                 info = json.loads(creds_json_str)
                 credentials = Credentials.from_service_account_info(info, scopes=scopes)
-                return gspread.authorize(credentials)
+                client = gspread.authorize(credentials)
+                if hasattr(client, 'http_client'):
+                    client.http_client.timeout = 20
+                return client
             except Exception as e:
                 print(f"[SheetsLoggerTool] Credentials JSON parse error: {e}")
 
