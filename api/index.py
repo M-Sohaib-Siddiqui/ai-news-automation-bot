@@ -14,9 +14,7 @@ from agents.crew import NewsCrewOrchestrator, run_news_crew
 app = FastAPI(
     title="TWF NEWS - AI Automation Bot API",
     description="Multi-Agent CrewAI Engine for News Fetching, Summarization, Slack Posting, and Google Sheets Logging",
-    version="1.0.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    version="1.0.0"
 )
 
 # Enable CORS
@@ -55,7 +53,7 @@ LATEST_NEWS_CACHE = {
 # --- Core API Handlers ---
 
 async def handle_status_request(request: Request = None):
-    return {
+    return JSONResponse({
         "status": "online",
         "app_name": "TWF NEWS - The World Forum",
         "timestamp": datetime.now().isoformat(),
@@ -67,7 +65,7 @@ async def handle_status_request(request: Request = None):
             "google_sheets": bool(os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID") and os.getenv("GOOGLE_SHEETS_SPREADSHEET_ID") != "your_google_sheet_id_here")
         },
         "last_run": LATEST_NEWS_CACHE["last_updated"]
-    }
+    })
 
 async def handle_run_request(request: Request = None):
     topic = "Artificial Intelligence"
@@ -93,7 +91,7 @@ async def handle_run_request(request: Request = None):
     LATEST_NEWS_CACHE["articles"] = result["articles"]
     LATEST_NEWS_CACHE["execution_logs"] = result["execution_logs"]
 
-    return result
+    return JSONResponse(result)
 
 async def handle_news_request(request: Request = None):
     topic = "Artificial Intelligence"
@@ -110,7 +108,7 @@ async def handle_news_request(request: Request = None):
             LATEST_NEWS_CACHE["articles"] = summaries
         except Exception as e:
             print(f"[handle_news_request] Error: {e}")
-    return LATEST_NEWS_CACHE
+    return JSONResponse(LATEST_NEWS_CACHE)
 
 async def handle_cron_request(request: Request = None):
     topic = os.getenv("DEFAULT_NEWS_TOPIC", "Artificial Intelligence")
@@ -122,16 +120,34 @@ async def handle_cron_request(request: Request = None):
     LATEST_NEWS_CACHE["articles"] = res["articles"]
     LATEST_NEWS_CACHE["execution_logs"] = res["execution_logs"]
 
-    return {
+    return JSONResponse({
         "status": "cron_executed",
         "timestamp": res["timestamp"],
         "topic": res["topic"],
         "articles_processed": len(res["articles"]),
         "slack": res["slack_status"],
         "sheets": res["sheets_status"]
-    }
+    })
 
-# --- FastAPI Routes ---
+# --- Middleware Interceptor for Guaranteed Vercel Routing ---
+
+@app.middleware("http")
+async def vercel_routing_middleware(request: Request, call_next):
+    path = request.url.path.lower()
+    
+    # Intercept API calls before any route matching or HTML fallback occurs
+    if "run" in path:
+        return await handle_run_request(request)
+    elif "status" in path:
+        return await handle_status_request(request)
+    elif "news" in path:
+        return await handle_news_request(request)
+    elif "cron" in path:
+        return await handle_cron_request(request)
+    
+    return await call_next(request)
+
+# --- Static UI Routes ---
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
@@ -164,44 +180,6 @@ async def serve_skyline():
     if content:
         return Response(content=content, media_type="image/jpeg")
     return JSONResponse({"error": "skyline-bg.jpg not found"}, status_code=404)
-
-@app.api_route("/api/status", methods=["GET", "POST"])
-@app.api_route("/status", methods=["GET", "POST"])
-async def route_status(request: Request):
-    return await handle_status_request(request)
-
-@app.api_route("/api/run", methods=["GET", "POST"])
-@app.api_route("/run", methods=["GET", "POST"])
-async def route_run(request: Request):
-    return await handle_run_request(request)
-
-@app.api_route("/api/news", methods=["GET", "POST"])
-@app.api_route("/news", methods=["GET", "POST"])
-async def route_news(request: Request):
-    return await handle_news_request(request)
-
-@app.api_route("/api/cron", methods=["GET", "POST"])
-@app.api_route("/cron", methods=["GET", "POST"])
-async def route_cron(request: Request):
-    return await handle_cron_request(request)
-
-# Catch-all route for any Vercel rewritten sub-path
-@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
-async def catch_all_routes(request: Request, full_path: str):
-    path_lower = full_path.lower()
-    if "run" in path_lower:
-        return await handle_run_request(request)
-    elif "status" in path_lower:
-        return await handle_status_request(request)
-    elif "news" in path_lower:
-        return await handle_news_request(request)
-    elif "cron" in path_lower:
-        return await handle_cron_request(request)
-    
-    content = read_static_file("index.html")
-    if content:
-        return HTMLResponse(content=content.decode("utf-8"))
-    return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1>")
 
 # Entrypoint for local execution
 if __name__ == "__main__":
