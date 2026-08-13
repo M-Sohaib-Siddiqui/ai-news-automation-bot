@@ -4,7 +4,6 @@ import json
 from datetime import datetime
 from fastapi import FastAPI, Request, Query, Response
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -92,7 +91,9 @@ async def serve_skyline():
         return Response(content=content, media_type="image/jpeg")
     return JSONResponse({"error": "skyline-bg.jpg not found"}, status_code=404)
 
+# Dual-routed endpoints for both local & Vercel serverless prefix stripping
 @app.get("/api/status")
+@app.get("/status")
 async def get_status():
     return {
         "status": "online",
@@ -109,6 +110,7 @@ async def get_status():
     }
 
 @app.post("/api/run")
+@app.post("/run")
 async def trigger_news_crew(req: RunCrewRequest):
     orchestrator = NewsCrewOrchestrator()
     result = orchestrator.run_pipeline(topic=req.topic, max_articles=req.max_articles)
@@ -122,9 +124,9 @@ async def trigger_news_crew(req: RunCrewRequest):
     return result
 
 @app.get("/api/news")
+@app.get("/news")
 async def get_latest_news(topic: str = Query("Artificial Intelligence")):
     if not LATEST_NEWS_CACHE["articles"]:
-        # Quick non-blocking initial fetch
         try:
             orchestrator = NewsCrewOrchestrator()
             raw = orchestrator.fetcher.fetch_news(query=topic, max_results=3)
@@ -138,9 +140,11 @@ async def get_latest_news(topic: str = Query("Artificial Intelligence")):
 
 @app.get("/api/cron")
 @app.post("/api/cron")
+@app.get("/cron")
+@app.post("/cron")
 async def vercel_cron_handler(request: Request):
     """
-    Vercel Cron endpoint scheduled to run every 6 hours.
+    Vercel Cron endpoint scheduled to run once per day.
     """
     topic = os.getenv("DEFAULT_NEWS_TOPIC", "Artificial Intelligence")
     orchestrator = NewsCrewOrchestrator()
