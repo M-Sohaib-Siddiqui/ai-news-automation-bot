@@ -1,0 +1,27 @@
+# Environment & Credentials
+.env
+*.env
+service_account.json
+credentials.json
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Vercel & IDEs
+.vercel
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Log files
+*.log
