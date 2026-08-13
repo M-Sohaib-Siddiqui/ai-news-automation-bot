@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. Fetch System Status
+  // 2. Fetch System Status (Runs parallel to page load)
   async function checkSystemStatus() {
     try {
       const res = await fetch('/api/status');
@@ -56,10 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         statusNews.textContent = data.integrations.serper_api ? 'Serper.dev API' : 'Google News RSS';
         statusNews.className = 'integ-status-text active';
+        return;
       }
     } catch (e) {
       console.warn('Status check notice:', e);
     }
+    // Fallback status text if API loading
+    statusSlack.textContent = 'Simulated (Set Env)';
+    statusSheets.textContent = 'Simulated (Set Env)';
+    statusLlm.textContent = 'Rule Fallback';
   }
 
   // 3. Fetch Latest News Data
@@ -212,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event Listeners
   btnRunCrew.addEventListener('click', triggerNewsCrew);
 
-  // Initialize
+  // Initialize immediately
   checkSystemStatus();
   fetchLatestNews();
 });

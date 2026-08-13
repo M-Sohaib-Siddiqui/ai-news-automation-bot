@@ -124,14 +124,16 @@ async def trigger_news_crew(req: RunCrewRequest):
 @app.get("/api/news")
 async def get_latest_news(topic: str = Query("Artificial Intelligence")):
     if not LATEST_NEWS_CACHE["articles"]:
-        # Run initial fetch if empty
-        orchestrator = NewsCrewOrchestrator()
-        res = orchestrator.run_pipeline(topic=topic, max_articles=5)
-        LATEST_NEWS_CACHE["last_updated"] = res["timestamp"]
-        LATEST_NEWS_CACHE["topic"] = res["topic"]
-        LATEST_NEWS_CACHE["articles"] = res["articles"]
-        LATEST_NEWS_CACHE["execution_logs"] = res["execution_logs"]
-
+        # Quick non-blocking initial fetch
+        try:
+            orchestrator = NewsCrewOrchestrator()
+            raw = orchestrator.fetcher.fetch_news(query=topic, max_results=3)
+            summaries = orchestrator.summarizer.summarize_articles(raw, target_bullets=2)
+            LATEST_NEWS_CACHE["last_updated"] = datetime.now().isoformat()
+            LATEST_NEWS_CACHE["topic"] = topic
+            LATEST_NEWS_CACHE["articles"] = summaries
+        except Exception:
+            pass
     return LATEST_NEWS_CACHE
 
 @app.get("/api/cron")
