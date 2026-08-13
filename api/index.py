@@ -3,7 +3,7 @@ import sys
 import json
 from datetime import datetime
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add project root to sys.path
@@ -26,7 +26,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Complete Untruncated Liquid Glass UI HTML
+# Base directories
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def read_static_file(rel_path: str):
+    clean_path = os.path.normpath(rel_path)
+    candidates = [
+        os.path.normpath(os.path.join(THIS_DIR, "public", clean_path)),
+        os.path.normpath(os.path.join(BASE_DIR, "public", clean_path)),
+        os.path.normpath(os.path.join(os.getcwd(), "public", clean_path)),
+        os.path.normpath(os.path.join("/var/task/api/public", clean_path)),
+        os.path.normpath(os.path.join("/var/task/public", clean_path)),
+        os.path.normpath(os.path.join("/var/task", clean_path))
+    ]
+    for c in candidates:
+        if os.path.exists(c) and os.path.isfile(c):
+            with open(c, "rb") as f:
+                return f.read()
+    return None
+
 INDEX_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -193,7 +212,6 @@ INDEX_HTML = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# Complete 706-Line Liquid Glass CSS (with button sheen, skyline backdrop, glass glow, & hover effects)
 STYLES_CSS = """/* ==========================================================================
    TWF NEWS - Liquid Glass BBC Broadcast Design System
    ========================================================================== */
@@ -668,14 +686,14 @@ async def handle_cron_request(request: Request = None):
 async def vercel_routing_middleware(request: Request, call_next):
     path = request.url.path.lower()
     
-    # Intercept API calls before any route matching or HTML fallback occurs
-    if "run" in path:
+    # Use exact path start checks to avoid domain name substring collisions
+    if path.startswith("/api/run") or path == "/run":
         return await handle_run_request(request)
-    elif "status" in path:
+    elif path.startswith("/api/status") or path == "/status":
         return await handle_status_request(request)
-    elif "news" in path:
+    elif path.startswith("/api/news") or path == "/news":
         return await handle_news_request(request)
-    elif "cron" in path:
+    elif path.startswith("/api/cron") or path == "/cron":
         return await handle_cron_request(request)
     
     return await call_next(request)
@@ -712,7 +730,7 @@ async def serve_skyline():
     content = read_static_file("assets/skyline-bg.jpg")
     if content:
         return Response(content=content, media_type="image/jpeg")
-    return JSONResponse({"error": "skyline-bg.jpg not found"}, status_code=404)
+    return Response(status_code=404)
 
 # Entrypoint for local execution
 if __name__ == "__main__":
