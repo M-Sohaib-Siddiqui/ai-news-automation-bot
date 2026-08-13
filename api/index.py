@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from datetime import datetime
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Response
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,24 +30,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Locate public directory across local and Vercel serverless environments
-def resolve_public_dir():
+# Base directories
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def read_static_file(rel_path: str):
     candidates = [
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public"),
-        os.path.join(os.getcwd(), "public"),
-        os.path.join(os.getcwd(), "..", "public"),
-        "/var/task/public",
-        "/var/task/public/index.html"
+        os.path.join(BASE_DIR, "public", rel_path),
+        os.path.join(os.getcwd(), "public", rel_path),
+        os.path.join("/var/task", "public", rel_path),
+        os.path.join("/var/task", rel_path)
     ]
     for c in candidates:
-        if os.path.exists(c):
-            if os.path.isdir(c) and os.path.exists(os.path.join(c, "index.html")):
-                return c
-            elif os.path.isfile(c):
-                return os.path.dirname(c)
-    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public")
-
-public_dir = resolve_public_dir()
+        if os.path.exists(c) and os.path.isfile(c):
+            with open(c, "rb") as f:
+                return f.read()
+    return None
 
 # Global in-memory cache for latest news run
 LATEST_NEWS_CACHE = {
@@ -64,33 +61,36 @@ class RunCrewRequest(BaseModel):
 # Root UI Endpoint - Serves Liquid Glass BBC Broadcast Interface
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    curr_public = resolve_public_dir()
-    index_path = os.path.join(curr_public, "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+    content = read_static_file("index.html")
+    if content:
+        return HTMLResponse(content=content.decode("utf-8"))
     return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1><p>Welcome to TWF NEWS Autonomous Engine.</p>")
 
-# Redirect /docs directly to root UI so typing /docs still opens the UI
+# Redirect /docs directly to root UI
 @app.get("/docs")
 async def redirect_docs_to_ui():
     return RedirectResponse(url="/")
 
 @app.get("/styles.css")
 async def serve_css():
-    curr_public = resolve_public_dir()
-    css_file = os.path.join(curr_public, "styles.css")
-    if os.path.exists(css_file):
-        return FileResponse(css_file, media_type="text/css")
+    content = read_static_file("styles.css")
+    if content:
+        return Response(content=content, media_type="text/css")
     return JSONResponse({"error": "styles.css not found"}, status_code=404)
 
 @app.get("/app.js")
 async def serve_js():
-    curr_public = resolve_public_dir()
-    js_file = os.path.join(curr_public, "app.js")
-    if os.path.exists(js_file):
-        return FileResponse(js_file, media_type="application/javascript")
+    content = read_static_file("app.js")
+    if content:
+        return Response(content=content, media_type="application/javascript")
     return JSONResponse({"error": "app.js not found"}, status_code=404)
+
+@app.get("/assets/skyline-bg.jpg")
+async def serve_skyline():
+    content = read_static_file("assets/skyline-bg.jpg")
+    if content:
+        return Response(content=content, media_type="image/jpeg")
+    return JSONResponse({"error": "skyline-bg.jpg not found"}, status_code=404)
 
 @app.get("/api/status")
 async def get_status():
@@ -157,11 +157,6 @@ async def vercel_cron_handler(request: Request):
         "slack": res["slack_status"],
         "sheets": res["sheets_status"]
     }
-
-# Mount assets directory for images
-assets_dir = os.path.join(public_dir, "assets")
-if os.path.exists(assets_dir):
-    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
 # Entrypoint for local execution
 if __name__ == "__main__":
