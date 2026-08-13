@@ -26,7 +26,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Embedded Static Assets (Guarantees zero 404 styling errors on Vercel)
+# Base directories
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def read_static_file(rel_path: str):
+    clean_path = os.path.normpath(rel_path)
+    candidates = [
+        os.path.normpath(os.path.join(THIS_DIR, "public", clean_path)),
+        os.path.normpath(os.path.join(BASE_DIR, "public", clean_path)),
+        os.path.normpath(os.path.join(os.getcwd(), "public", clean_path)),
+        os.path.normpath(os.path.join("/var/task/api/public", clean_path)),
+        os.path.normpath(os.path.join("/var/task/public", clean_path)),
+        os.path.normpath(os.path.join("/var/task", clean_path))
+    ]
+    for c in candidates:
+        if os.path.exists(c) and os.path.isfile(c):
+            with open(c, "rb") as f:
+                return f.read()
+    return None
+
+# Embedded Static Assets
 INDEX_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -198,7 +218,7 @@ STYLES_CSS = """/* TWF NEWS - Liquid Glass Design System */
   --font-primary: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
   --glass-bg: rgba(255, 255, 255, 0.08);
-  --glass-card: rgba(18, 24, 38, 0.75);
+  --glass-card: rgba(18, 24, 38, 0.55);
   --glass-border: rgba(255, 255, 255, 0.22);
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4);
   --accent-red: #ff3b30;
@@ -214,25 +234,26 @@ STYLES_CSS = """/* TWF NEWS - Liquid Glass Design System */
 body {
   font-family: var(--font-primary);
   color: var(--text-main);
-  background-color: #080a10;
+  background-color: #0b1120;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
 }
 .skyline-background {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle at 50% 20%, #1a2540 0%, #060810 80%), url('assets/skyline-bg.jpg');
+  background-image: url('/assets/skyline-bg.jpg'), radial-gradient(circle at 50% 20%, #1e293b 0%, #0f172a 100%);
   background-size: cover; background-position: center; z-index: -2;
+  filter: brightness(0.85) contrast(1.1);
 }
 .glass-backdrop-blur {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  background: radial-gradient(circle at 50% 30%, rgba(10, 15, 30, 0.4), rgba(4, 6, 12, 0.85));
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: -1;
+  background: radial-gradient(circle at 50% 30%, rgba(15, 23, 42, 0.35), rgba(8, 12, 22, 0.75));
+  backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%); z-index: -1;
 }
 .top-brand-header { position: fixed; top: 20px; right: 24px; z-index: 100; }
 .brand-container {
   padding: 10px 20px; border-radius: 20px; display: flex; align-items: center; gap: 14px;
-  backdrop-filter: blur(24px); background: rgba(18, 22, 38, 0.75); border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px); background: rgba(18, 24, 42, 0.65); border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
 .live-indicator {
@@ -486,25 +507,6 @@ APP_JS = """document.addEventListener('DOMContentLoaded', () => {
   checkSystemStatus();
   fetchLatestNews();
 });"""
-
-# Base directories
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-
-def read_static_file(rel_path: str):
-    candidates = [
-        os.path.join(THIS_DIR, "public", rel_path),
-        os.path.join(BASE_DIR, "public", rel_path),
-        os.path.join(os.getcwd(), "public", rel_path),
-        os.path.join("/var/task/api/public", rel_path),
-        os.path.join("/var/task/public", rel_path),
-        os.path.join("/var/task", rel_path)
-    ]
-    for c in candidates:
-        if os.path.exists(c) and os.path.isfile(c):
-            with open(c, "rb") as f:
-                return f.read()
-    return None
 
 # Global in-memory cache for latest news run
 LATEST_NEWS_CACHE = {
