@@ -13,19 +13,19 @@
     },
     {
       "src": "/styles.css",
-      "dest": "/api/index.py"
+      "dest": "/public/styles.css"
     },
     {
       "src": "/app.js",
-      "dest": "/api/index.py"
+      "dest": "/public/app.js"
     },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "/api/index.py"
+      "src": "/",
+      "dest": "/public/index.html"
     }
   ],
   "crons": [
