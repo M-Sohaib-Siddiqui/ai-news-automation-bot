@@ -1,0 +1,705 @@
+/* ==========================================================================
+   TWF NEWS - Liquid Glass BBC Broadcast Design System
+   ========================================================================== */
+
+:root {
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  /* Glass Colors */
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-bg-hover: rgba(255, 255, 255, 0.14);
+  --glass-card: rgba(18, 24, 38, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.22);
+  --glass-border-glow: rgba(255, 255, 255, 0.45);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  
+  /* Accents */
+  --accent-red: #ff3b30;
+  --accent-blue: #007aff;
+  --accent-cyan: #32ade6;
+  --accent-green: #34c759;
+  --accent-gold: #ffcc00;
+  
+  --text-main: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.75);
+  --text-dim: rgba(255, 255, 255, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--text-main);
+  background-color: #080a10;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ==========================================================================
+   Background Image & Backdrop Blur
+   ========================================================================== */
+.skyline-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: url('assets/skyline-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -2;
+  filter: brightness(0.9) contrast(1.05);
+}
+
+.glass-backdrop-blur {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 30%, rgba(10, 15, 30, 0.3), rgba(4, 6, 12, 0.75));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  z-index: -1;
+}
+
+/* ==========================================================================
+   Top Right Logo & Header (TWF NEWS / The World Forum)
+   ========================================================================== */
+.top-brand-header {
+  position: fixed;
+  top: 24px;
+  right: 28px;
+  z-index: 100;
+}
+
+.brand-container {
+  padding: 12px 24px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  background: rgba(18, 22, 38, 0.55);
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-red);
+  background: rgba(255, 59, 48, 0.15);
+  border: 1px solid rgba(255, 59, 48, 0.4);
+  padding: 4px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--accent-red);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(255, 59, 48, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+}
+
+.brand-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+#twf-logo {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ffffff 0%, #d4e4ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+.sub-abbrev {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Liquid Glass Components & Cards
+   ========================================================================== */
+.liquid-glass-card {
+  background: var(--glass-card);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+}
+
+/* ==========================================================================
+   Main Wrapper & Hero Layout
+   ========================================================================== */
+.main-broadcast-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 100px 24px 100px 24px;
+}
+
+.hero-center-box {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.hero-glass-panel {
+  padding: 36px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status-pill-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  backdrop-filter: blur(10px);
+}
+
+.clickable-pill {
+  cursor: pointer;
+  background: rgba(0, 122, 255, 0.15);
+  border-color: rgba(0, 122, 255, 0.4);
+  color: #70b5ff;
+  transition: all 0.2s ease;
+}
+
+.clickable-pill:hover {
+  background: rgba(0, 122, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.broadcast-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(180deg, #ffffff 0%, #c4d7f5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+
+.broadcast-subtitle {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 680px;
+  margin: 0 auto 28px auto;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   Topic Filter Buttons (Liquid Glass Style)
+   ========================================================================== */
+.topic-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.topic-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: var(--font-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+}
+
+.topic-pill:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--glass-border-glow);
+  transform: translateY(-2px);
+}
+
+.topic-pill.active {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.35) 0%, rgba(50, 173, 230, 0.35) 100%);
+  border-color: #32ade6;
+  box-shadow: 0 0 20px rgba(50, 173, 230, 0.3);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Liquid Glass Action Buttons
+   ========================================================================== */
+.liquid-glass-button {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 16px 36px;
+  border-radius: 40px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.6);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.liquid-glass-button:hover {
+  transform: translateY(-3px) scale(1.02);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 100%);
+  border-color: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 122, 255, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+}
+
+.liquid-glass-button:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-sheen {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-25deg);
+  transition: all 0.6s ease;
+}
+
+.liquid-glass-button:hover .btn-sheen {
+  left: 150%;
+}
+
+/* ==========================================================================
+   Grid & News Cards
+   ========================================================================== */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-header h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timestamp-badge, .agent-count-badge {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.news-list {
+  padding: 24px;
+  display: flex;
+  flex-direction: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Glass News Item Card */
+.news-card-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 20px;
+  transition: all 0.25s ease;
+}
+
+.news-card-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.news-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.news-card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+}
+
+.news-card-summary {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  white-space: pre-line;
+  margin-bottom: 14px;
+}
+
+.news-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.source-tag {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.story-link {
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s ease;
+}
+
+.story-link:hover {
+  color: #66b2ff;
+  text-decoration: underline;
+}
+
+/* Skeleton Loading */
+.skeleton-line {
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  animation: shimmer 1.5s infinite ease-in-out;
+}
+
+.skeleton-line.title { height: 24px; width: 75%; }
+.skeleton-line.text { width: 100%; }
+.skeleton-line.short { width: 45%; }
+
+@keyframes shimmer {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+  100% { opacity: 0.3; }
+}
+
+/* ==========================================================================
+   Console Output & Integration Cards
+   ========================================================================== */
+.console-panel {
+  margin-bottom: 24px;
+}
+
+.console-body {
+  padding: 16px 20px;
+  height: 220px;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 0 0 24px 24px;
+}
+
+.console-line {
+  margin-bottom: 6px;
+}
+
+.console-line.info { color: var(--accent-cyan); }
+.console-line.ready { color: var(--accent-green); }
+.console-line.error { color: var(--accent-red); }
+
+/* Integrations Grid */
+.integrations-panel {
+  padding-bottom: 20px;
+}
+
+.integrations-grid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.integration-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.integration-item i {
+  font-size: 1.4rem;
+  color: var(--accent-cyan);
+}
+
+.integ-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.integ-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.integ-status-text {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.integ-status-text.active { color: var(--accent-green); }
+.integ-status-text.simulated { color: var(--accent-gold); }
+
+/* ==========================================================================
+   BBC News Bottom Rolling Marquee Ticker
+   ========================================================================== */
+.bbc-ticker-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100vw;
+  height: 48px;
+  background: rgba(15, 18, 28, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.ticker-label {
+  background: var(--accent-red);
+  height: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.3);
+}
+
+.ticker-badge {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+}
+
+.ticker-track-wrapper {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.ticker-track {
+  display: inline-block;
+  padding-left: 100%;
+  animation: ticker-scroll 35s linear infinite;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e5f0ff;
+}
+
+.ticker-track-wrapper:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes ticker-scroll {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-100%, 0, 0); }
+}
+
+/* ==========================================================================
+   Setup Guides Modal
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  transition: opacity 0.3s ease;
+}
+
+.modal-backdrop.hidden {
+  display: none;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: rgba(22, 28, 45, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+.modal-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px 0 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-tab {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.modal-tab.active {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.tab-pane.hidden {
+  display: none;
+}
+
+.setup-list {
+  padding-left: 20px;
+  margin-top: 14px;
+  line-height: 1.8;
+  color: var(--text-muted);
+}
+
+.setup-list code {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent-cyan);
+}
+
+.setup-list a {
+  color: var(--accent-blue);
+}

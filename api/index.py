@@ -28,12 +28,15 @@ app.add_middleware(
 
 # Base directories
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def read_static_file(rel_path: str):
     candidates = [
+        os.path.join(THIS_DIR, "public", rel_path),
         os.path.join(BASE_DIR, "public", rel_path),
         os.path.join(os.getcwd(), "public", rel_path),
-        os.path.join("/var/task", "public", rel_path),
+        os.path.join("/var/task/api/public", rel_path),
+        os.path.join("/var/task/public", rel_path),
         os.path.join("/var/task", rel_path)
     ]
     for c in candidates:
@@ -106,8 +109,8 @@ async def handle_news_request(request: Request = None):
             LATEST_NEWS_CACHE["last_updated"] = datetime.now().isoformat()
             LATEST_NEWS_CACHE["topic"] = topic
             LATEST_NEWS_CACHE["articles"] = summaries
-        except Exception as e:
-            print(f"[handle_news_request] Error: {e}")
+        except Exception:
+            pass
     return JSONResponse(LATEST_NEWS_CACHE)
 
 async def handle_cron_request(request: Request = None):
