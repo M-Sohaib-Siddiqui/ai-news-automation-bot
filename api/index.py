@@ -91,9 +91,9 @@ async def serve_skyline():
         return Response(content=content, media_type="image/jpeg")
     return JSONResponse({"error": "skyline-bg.jpg not found"}, status_code=404)
 
-# Dual-routed endpoints for both local & Vercel serverless prefix stripping
-@app.get("/api/status")
-@app.get("/status")
+# Explicit endpoints
+@app.api_route("/api/status", methods=["GET", "POST"])
+@app.api_route("/status", methods=["GET", "POST"])
 async def get_status():
     return {
         "status": "online",
@@ -109,11 +109,24 @@ async def get_status():
         "last_run": LATEST_NEWS_CACHE["last_updated"]
     }
 
-@app.post("/api/run")
-@app.post("/run")
-async def trigger_news_crew(req: RunCrewRequest):
+@app.api_route("/api/run", methods=["POST", "GET"])
+@app.api_route("/run", methods=["POST", "GET"])
+async def trigger_news_crew(request: Request):
+    topic = "Artificial Intelligence"
+    max_articles = 5
+    
+    if request.method == "POST":
+        try:
+            body = await request.json()
+            topic = body.get("topic", topic)
+            max_articles = body.get("max_articles", max_articles)
+        except Exception:
+            pass
+    else:
+        topic = request.query_params.get("topic", topic)
+
     orchestrator = NewsCrewOrchestrator()
-    result = orchestrator.run_pipeline(topic=req.topic, max_articles=req.max_articles)
+    result = orchestrator.run_pipeline(topic=topic, max_articles=max_articles)
     
     # Update cache
     LATEST_NEWS_CACHE["last_updated"] = result["timestamp"]
@@ -123,8 +136,8 @@ async def trigger_news_crew(req: RunCrewRequest):
 
     return result
 
-@app.get("/api/news")
-@app.get("/news")
+@app.api_route("/api/news", methods=["GET", "POST"])
+@app.api_route("/news", methods=["GET", "POST"])
 async def get_latest_news(topic: str = Query("Artificial Intelligence")):
     if not LATEST_NEWS_CACHE["articles"]:
         try:
@@ -138,10 +151,8 @@ async def get_latest_news(topic: str = Query("Artificial Intelligence")):
             pass
     return LATEST_NEWS_CACHE
 
-@app.get("/api/cron")
-@app.post("/api/cron")
-@app.get("/cron")
-@app.post("/cron")
+@app.api_route("/api/cron", methods=["GET", "POST"])
+@app.api_route("/cron", methods=["GET", "POST"])
 async def vercel_cron_handler(request: Request):
     """
     Vercel Cron endpoint scheduled to run once per day.
@@ -163,6 +174,24 @@ async def vercel_cron_handler(request: Request):
         "slack": res["slack_status"],
         "sheets": res["sheets_status"]
     }
+
+# Fail-safe catch-all route for any Vercel rewritten URL
+@app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def catch_all_routes(request: Request, full_path: str):
+    path_lower = full_path.lower()
+    if "run" in path_lower:
+        return await trigger_news_crew(request)
+    elif "status" in path_lower:
+        return await get_status()
+    elif "news" in path_lower:
+        return await get_latest_news()
+    elif "cron" in path_lower:
+        return await vercel_cron_handler(request)
+    
+    content = read_static_file("index.html")
+    if content:
+        return HTMLResponse(content=content.decode("utf-8"))
+    return HTMLResponse("<h1>TWF NEWS AI Engine Active</h1>")
 
 # Entrypoint for local execution
 if __name__ == "__main__":
